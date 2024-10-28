@@ -176,11 +176,19 @@ def toggle_enable_disable(toggle_state, textbox):
     return textbox.update(interactive=toggle_state)
 
 # Function to handle sending messages to the chatbot
+# def send_message(message, chat_history):
+#     # Simulate a response from the agent
+#     response = "This is a response from the agent."
+#     chat_history.append({"role": "user", "content": message})
+#     chat_history.append({"role": "assistant", "content": response})
+#     return "", chat_history
+
 def send_message(message, chat_history):
     # Simulate a response from the agent
     response = "This is a response from the agent."
-    chat_history.append({"role": "user", "content": message})
-    chat_history.append({"role": "assistant", "content": response})
+    # Append the user's message and the bot's response to the chat history
+    chat_history = chat_history + [(message, response)]
+    # Clear the input box
     return "", chat_history
 
 # 定义确认按钮点击事件的函数

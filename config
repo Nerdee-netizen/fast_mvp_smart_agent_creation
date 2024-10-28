@@ -1,0 +1,7 @@
+    ENV=localhahah
+    SERVICE_NAME=prediction-service
+    SERVICE_VERSION=localver
+    NAMESPACE=lalala
+    LLM_API_KEY=QjzR8b1Xq2c3Y4xN5z6Z7a8BcD9eF0G
+    LLM_GATEWAY=http://api-gw.motiong.net:5000/api/openai/eve/v1/
+    LLM_MODEL=gpt-4o

@@ -176,11 +176,19 @@ def toggle_enable_disable(toggle_state, textbox):
     return textbox.update(interactive=toggle_state)
 
 # Function to handle sending messages to the chatbot
-def send_message(message, chat_history):
+# def send_message(message, chat_history):
+#     # Simulate a response from the agent
+#     response = "This is a response from the agent."
+#     chat_history.append({"role": "user", "content": message})
+#     chat_history.append({"role": "assistant", "content": response})
+#     return "", chat_history
+
+def send_message(message, chat_history, system_prompt):
     # Simulate a response from the agent
-    response = "This is a response from the agent."
-    chat_history.append({"role": "user", "content": message})
-    chat_history.append({"role": "assistant", "content": response})
+    response = llm.get_response(message, chat_history, system_prompt)
+    # Append the user's message and the bot's response to the chat history
+    chat_history = chat_history + [(message, response)]
+    # Clear the input box
     return "", chat_history
 
 # 定义确认按钮点击事件的函数
@@ -259,13 +267,19 @@ def generate_agent_objectives(role, role_desc, audience, knowledge1, knowledge2,
 
 def on_btn_generate_agent_clicked(role, role_desc, audience, knowledge1, knowledge2, knowledge3, 
                                   objective1, objective2, objective3, objective4):
-    
-    system_prompt = compose_system_prompt(role, role_desc, audience, 
-                                          knowledge=[knowledge1, knowledge2, knowledge3],
-                                            objective=[objective1, objective2, objective3, objective4])
-                                             
-    greetings = ("assistant", "hi. This is my system prompt: " + system_prompt)
-    return [greetings]
+
+    system_prompt = compose_system_prompt(
+        role, 
+        role_desc, 
+        audience, 
+        knowledge=[knowledge1, knowledge2, knowledge3],
+        objective=[objective1, objective2, objective3, objective4]
+    )
+
+    greetings = ("assistant", "Hi! Your agent has been created.")
+    # Return both the initial chatbot message and the system_prompt
+    return [ [greetings], system_prompt ]
+
 
 # Gradio Interface
 def gradio_interface():
@@ -273,6 +287,7 @@ def gradio_interface():
 
     # Create Gradio blocks for user input
     with gr.Blocks(theme="dark") as demo:
+        system_prompt_state = gr.State("")
         with gr.Tabs() as tabs:
             with gr.Tab("Agent Role and Audience", id="t0") as t0:
                 with gr.Row():
@@ -389,7 +404,11 @@ def gradio_interface():
                         share_btn = gr.Button("Generate QR Code and Link")
 
         # Attach the send_message function to the send button
-        send_msg_btn.click(send_message, [msg_input, chatbot], [msg_input, chatbot])
+        send_msg_btn.click(
+                send_message,
+                inputs=[msg_input, chatbot, system_prompt_state],
+                outputs=[msg_input, chatbot]
+            )
 
         # 设置下拉菜单选择事件，将选择的值填充到文本框中
         role_dropdown.change(fn=lambda x: x, inputs=role_dropdown, outputs=role)
@@ -411,19 +430,22 @@ def gradio_interface():
                          inputs=[role, role_description, audience, knowledge_textbox_1, knowledge_textbox_2, knowledge_textbox_3], 
                          outputs=[objective_textbox_1, objective_textbox_2, objective_textbox_3, objective_textbox_4])
 
-        generate_agent_btn.click(on_btn_generate_agent_clicked,
-                                    inputs=[role, 
-                                            role_description, 
-                                            audience, 
-                                            knowledge_textbox_1, 
-                                            knowledge_textbox_2, 
-                                            knowledge_textbox_3,
-                                        objective_textbox_1,
-                                        objective_textbox_2,
-                                        objective_textbox_3,
-                                        objective_textbox_4],
-                                
-                                outputs=chatbot)
+        generate_agent_btn.click(
+                    on_btn_generate_agent_clicked,
+                    inputs=[
+                        role, 
+                        role_description, 
+                        audience, 
+                        knowledge_textbox_1, 
+                        knowledge_textbox_2, 
+                        knowledge_textbox_3,
+                        objective_textbox_1,
+                        objective_textbox_2,
+                        objective_textbox_3,
+                        objective_textbox_4
+                    ],
+                    outputs=[chatbot, system_prompt_state]
+                )
     demo.launch(show_error=True)
 
 # Run the Gradio app

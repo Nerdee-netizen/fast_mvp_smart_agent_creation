@@ -138,6 +138,34 @@ class BasicLLM:
 
         return message
 
+    def get_response(self, message: str, chat_history: list[tuple], system_prompt: str) -> str:
+        if not system_prompt:
+            response = "Please generate an agent first by clicking the 'Generate Agent' button."
+        else:
+            # Prepare the conversation history for the API call
+            messages = [
+                {"role": "system", "content": system_prompt},
+            ]
+
+            # Add the previous conversation to the messages
+            for user_msg, assistant_msg in chat_history:
+                messages.append({"role": "user", "content": user_msg})
+                messages.append({"role": "assistant", "content": assistant_msg})
+
+            # Add the latest user message
+            messages.append({"role": "user", "content": message})
+
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=messages,
+                    temperature=0,
+                    stream=False,
+                )
+                complete_response = response.choices[0].message.content
+            except Exception as e:
+                complete_response = f"An error occurred: {e}"
+        return complete_response
 
 if __name__ == "__main__":
 
